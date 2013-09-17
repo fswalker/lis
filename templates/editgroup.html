@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="span12">
+        <button id="export" class="btn btn-large " data-toggle="modal">Eksportuj do pliku CSV</button>
+        <div class="modal hide" id="modal-export">
+            <div class="modal-header"><h3>Export do CSV</h3></div>
+            <div class="modal-body">
+                Export do pliku CSV zakonczyl sie <span id="result"></span>!
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-success" id="modal-export-ok" data-dismiss="modal">OK</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <p>Map</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script type="text/javascript">
+    $('#export').click(function() {
+        $.ajax({
+                url: '{{ url_for('csv_export') }}',
+                type: "POST",
+        }).done(function(result) {
+            if ( result == 'True' ) {
+                $('#modal-export-ok').addClass('btn-success');
+                $('#modal-export-ok').removeClass('btn-danger');
+                $('#result').text('sukcesem');
+            }
+            else
+                $('#modal-export-ok').addClass('btn-danger');
+                $('#modal-export-ok').removeClass('btn-success');
+                $('#result').text('porazka');
+        });
+    });
+</script>
+{% endblock %}

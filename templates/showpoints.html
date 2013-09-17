@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="row">
+    <div class="span12">
+        <h3>
+            Grupy wynikowe - 
+            {% if groupid is undefined %}
+                {{ groupid }}
+            {% else %}
+                wybierz groupę z listy
+            {% endif %}
+        </h3>
+        <a href="#modal-export" id="export" class="btn btn-large " data-toggle="modal">Eksportuj do pliku CSV</button>
+        <div class="modal hide" id="modal-export">
+            <div class="modal-header"><h3>Export do CSV</h3></div>
+            <div class="modal-body">
+                Export do pliku CSV zakonczyl sie <span id="result"></span>!
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-success" id="modal-export-ok" data-dismiss="modal">OK</a>
+            </div>
+        </div>
+    </div>
+        <div id="map"></div>
+        <ul>
+            {% for gid in groupids %}
+            <li> 
+                <a href="{{ url_for('show_group', groupid=gid)}}">
+                    grupa {{ gid }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+<script src="http://maps.google.com/maps/api/js?v=3.2&sensor=false"></script>
+<script src="http://openlayers.org/api/OpenLayers.js"></script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script type="text/javascript">
+$(function() {
+    var pointImg = "{{ url_for('static', filename='img/lantern.png') }}";
+    var painter = new PointsPainter();
+
+    var points  = [
+    {% for point in points %}
+        new OpenLayers.Geometry.Point({{ point[0] }}, {{ point[1] }}),
+    {% endfor %}
+    ];
+     
+    painter.paint(points, pointImg);
+});
+
+$('#export').click(function() {
+        $.ajax({
+                url: '{{ url_for('csv_export') }}',
+                type: "POST",
+        }).done(function(result) {
+            if ( result === 'True' ) {
+                $('#modal-export-ok').addClass('btn-success');
+                $('#modal-export-ok').removeClass('btn-danger');
+                $('#result').text('sukcesem');
+            }
+            else {
+                $('#modal-export-ok').addClass('btn-danger');
+                $('#modal-export-ok').removeClass('btn-success');
+                $('#result').text('porazka');
+            }
+        });
+    });
+
+</script>
+{% endblock %}

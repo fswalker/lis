@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="span12">
+    <a href="#modal-group" class="btn btn-primary btn-large" data-toggle="modal">Grupuj latarnie</a>
+    <a href="#modal-delete" class="btn btn-danger" data-toggle="modal">Usuń problem</a>
+    <div class="modal hide" id="modal-delete">
+        <div class="modal-header"><h3>Usuń problem</h3></div>
+        <div class="modal-body">
+            Czy jesteś pewien, że chcesz usunąć problem o ID 
+            {{ problemid }} wraz z wszystkimi powiązanymi danymi?
+            <form method="post" class="form-inline" id="modal-form" 
+                style="display: none"
+                action="{{ url_for('problem_delete', problemid=problemid) }}">
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a class="btn" data-dismiss="modal">Anuluj</a>
+            <a class="btn btn-danger" id="modal-submit">Usuń problem</a>
+        </div>
+    </div>
+    <div class="modal hide" id="modal-group" data-backdrop="static">
+        <div class="modal-header"><h3>Współliniowe grupowanie latarni</h3></div>
+        <div class="modal-body">
+            <div class="progress progress-striped active" id="progressbar">
+                <div class="bar" style="width: 0%;"></div>
+            </div>
+            <div id="progress-console">
+                <ul>
+                </ul>
+            </div>
+            <form method="post" class="form-inline" id="modal-group-form"
+                style="display: none"
+                action="{{ url_for('show_group') }}">
+            </form>
+        </div>
+        <div class="modal-footer">
+            <a class="btn btn-danger" data-dismiss="modal" id="modal-group-cancel">Anuluj</a>
+            <button class="btn btn-success disabled" id="modal-group-success">Sukces</button>
+        </div>
+    </div>
+    <h3>Problem #{{ problemid }}</h3>
+
+    <div id="map"></div>
+
+    <table class="table table-striped table-condensed">
+        <tr>
+            <th>ID</th>
+            <th>Miasto</th>
+            <th>Ulica</th>
+            <th>X</th>
+            <th>Y</th>
+            <th>Z</th>
+        </tr>
+        {% for item in data %}
+        <tr>
+            <td>{{ item['ID'] }}</td>
+            <td>{{ item['Miasto'] }}</td>
+            <td>{{ item['Ulica'] }}</td>
+            <td>{{ item['X'] }}</td>
+            <td>{{ item['Y'] }}</td>
+            <td>{{ item['Z'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{{ url_for('static', filename='js/showproblem_modals.js') }}"></script>
+<script src="http://maps.google.com/maps/api/js?v=3.2&sensor=false"></script>
+<script src="http://openlayers.org/api/OpenLayers.js"></script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script type="text/javascript">
+    var CHECK_STATUS_URL = "{{ url_for('check_status', problemid=problemid) }}";
+    var PROBLEM_GROUP_URL = "{{ url_for('calculate_groups', problemid=problemid) }}";
+</script>
+<script type="text/javascript">
+$(function() {
+
+    $("#modal-submit").click(function(e) {
+        e.preventDefault();
+        $("#modal-form").submit();
+    });
+
+    GroupModal.Init();
+
+    var pointImg = "{{ url_for('static', filename='img/lantern.png') }}";
+    var painter = new PointsPainter();
+
+    var points  = [
+    {% for point in points %}
+        new OpenLayers.Geometry.Point({{ point[0] }}, {{ point[1] }}),
+    {% endfor %}
+    ];
+     
+    painter.paint(points, pointImg);
+});
+</script>
+
+
+{% endblock %}
